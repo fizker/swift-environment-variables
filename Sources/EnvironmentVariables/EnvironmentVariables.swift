@@ -44,6 +44,8 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 
 	/// Asserts if any keys are missing, and throws if there are.
 	///
+	/// See ``assertKeys(_:)`` to specify a subset of the keys.
+	///
 	/// - Throws: An instance of `MissingEnvironmentVariables` containing all the required keys that are missing.
 	public func assertKeys() throws {
 		guard !missingKeys.keys.isEmpty
@@ -53,6 +55,8 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 	}
 
 	/// Asserts if any of the given keys are missing, and throws if there are.
+	///
+	/// See ``assertKeys()`` if all the keys are required.
 	///
 	/// - Parameter requiredKeys: The list of keys to assert against.
 	///
@@ -76,6 +80,12 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 	///
 	/// - Returns: The matching value.
 	///
+	/// See ``get(_:default:)`` for a non-throwing version.
+	///
+	/// See ``get(_:map:)`` for a version that maps to a different value than `String`.
+	///
+	/// See ``get(_:map:default:)`` for a non-throwing version that maps to a different value than `String`.
+	///
 	/// - Throws: An instance of `MissingEnvironmentVariables` containing all the required keys that are missing, including the currently requested.
 	public func get(_ key: Key) throws -> String {
 		guard let value = values[key]
@@ -90,6 +100,12 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 	/// - Parameter map: The map function used to transform the value.
 	///
 	/// - Returns: The transformed value, or the default if the value could not be transformed.
+	///
+	/// See ``get(_:)`` for a throwing version.
+	///
+	/// See ``get(_:default:)`` for a non-throwing version.
+	///
+	/// See ``get(_:map:default:)`` for a non-throwing version that maps to a different value than `String`.
 	///
 	/// - Throws: If the `map` function can throw, that `Error` is propagated from here.
 	///     If the `map` function returns `nil`, `EnvironmentVariablesError.couldNotMap(value)` is thrown.
@@ -108,6 +124,12 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 	/// - Parameter default: The default value to use if the variable is missing.
 	///
 	/// - Returns: The matching value.
+	///
+	/// See ``get(_:)`` for a throwing version.
+	///
+	/// See ``get(_:map:)`` for a version that maps to a different value than `String`.
+	///
+	/// See ``get(_:map:default:)`` for a non-throwing version that maps to a different value than `String`.
 	public func get(_ key: Key, default: String) -> String {
 		let value = try? get(key)
 		return value ?? `default`
@@ -120,6 +142,12 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 	/// - Parameter default: The default value to use if the variable is missing.
 	///
 	/// - Returns: The transformed value, or the default if the value could not be transformed.
+	///
+	/// See ``get(_:)`` for a throwing version.
+	///
+	/// See ``get(_:default:)`` for a non-throwing version.
+	///
+	/// See ``get(_:map:)`` for a version that maps to a different value than `String`.
 	///
 	/// - Throws: If the `map` function can throw, that `Error` is propagated from here.
 	public func get<T>(_ key: Key, map: (String) throws -> T?, default: T) rethrows -> T {
