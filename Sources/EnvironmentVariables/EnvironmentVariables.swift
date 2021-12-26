@@ -1,3 +1,5 @@
+import Foundation
+
 /// Errors that could be thrown by the `EnvironmentVariables` struct.
 public enum EnvironmentVariablesError: Error {
 	case couldNotMap(String)
@@ -9,7 +11,7 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 	///
 	/// - Parameter valueGetter: A function that takes a `String` key and returns the matching
 	/// value from the environment, or `nil` if there are no matches.
-	public init(valueGetter: (String) -> String?) {
+	public init(valueGetter: (String) -> String? = { ProcessInfo.processInfo.environment[$0] }) {
 		missingKeys.keys = []
 
 		for key in Key.allCases {
