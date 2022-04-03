@@ -1,7 +1,7 @@
 /// Error container for any required Environment keys that are missing
 public struct MissingEnvironmentVariables: Error {
 	/// The keys that are missing.
-	var keys: [String] = []
+	public var keys: [String] = []
 }
 
 extension MissingEnvironmentVariables: CustomStringConvertible {

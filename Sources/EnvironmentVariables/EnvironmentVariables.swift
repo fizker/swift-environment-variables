@@ -2,6 +2,8 @@ import Foundation
 
 /// Errors that could be thrown by the `EnvironmentVariables` struct.
 public enum EnvironmentVariablesError: Error {
+	/// Contains a value that a given mapper failed to convert to the expected type.
+	/// See ``EnvironmentVariables/EnvironmentVariables/get(_:map:)`` for an example.
 	case couldNotMap(String)
 }
 
