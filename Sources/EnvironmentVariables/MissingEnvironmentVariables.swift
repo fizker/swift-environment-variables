@@ -1,5 +1,5 @@
 /// Error container for any required Environment keys that are missing
-public struct MissingEnvironmentVariables: Error {
+public struct MissingEnvironmentVariables: Error, Sendable {
 	/// The keys that are missing.
 	public var keys: [String] = []
 }

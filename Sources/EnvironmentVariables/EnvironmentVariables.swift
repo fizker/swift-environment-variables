@@ -1,7 +1,7 @@
 import Foundation
 
 /// Errors that could be thrown by the `EnvironmentVariables` struct.
-public enum EnvironmentVariablesError: Error {
+public enum EnvironmentVariablesError: Error, Sendable {
 	/// Contains a value that a given mapper failed to convert to the expected type.
 	/// See ``EnvironmentVariables/EnvironmentVariables/get(_:map:)`` for an example.
 	case couldNotMap(String)
@@ -159,4 +159,7 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 
 	private var values: [Key: String] = [:]
 	private var missingKeys: MissingEnvironmentVariables = .init()
+}
+
+extension EnvironmentVariables: Sendable where Key: Sendable {
 }
