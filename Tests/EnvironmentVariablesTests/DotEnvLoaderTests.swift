@@ -44,4 +44,21 @@ final class DotEnvLoaderTests: XCTestCase {
 			"baz": "1\n2",
 		])
 	}
+
+	func test__parseFile__emptyLines_quotes__parsesCorrectly() async throws {
+		let file = DotEnvLoader.parse(file: """
+
+		foo=1
+		# foo
+		bar=2
+
+		baz=3 # comment
+		""")
+
+		XCTAssertEqual(file, [
+		"foo": "1",
+		"bar": "2",
+		"baz": "3",
+		])
+	}
 }

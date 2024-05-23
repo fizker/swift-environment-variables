@@ -3,7 +3,7 @@ typealias EnvFile = [String: String]
 public struct DotEnvLoader {
 	static func parse(file: String) -> EnvFile? {
 		enum State {
-			case key, value
+			case key, value, comment
 			case beforeValue, afterValue
 			case quotedValue(Character)
 		}
@@ -17,7 +17,7 @@ public struct DotEnvLoader {
 
 		func finishValue() {
 			if !currentKey.isEmpty && !currentValue.isEmpty {
-				output[String(currentKey)] = String(currentValue)
+				output[String(currentKey).trimmingCharacters(in: .whitespaces)] = String(currentValue).trimmingCharacters(in: .whitespaces)
 				currentKey = []
 				currentValue = []
 			}
@@ -29,13 +29,24 @@ public struct DotEnvLoader {
 				case .quotedValue(_):
 					break
 				default:
-					state = .key
 					finishValue()
+					state = .key
+					continue
+				}
+			}
+			if token == "#" {
+				switch state {
+				case .quotedValue(_):
+					break
+				default:
+					state = .comment
 					continue
 				}
 			}
 
 			switch state {
+			case .comment:
+				continue
 			case .key:
 				if token == "=" {
 					state = .beforeValue
