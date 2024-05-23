@@ -4,6 +4,8 @@ public struct DotEnvLoader {
 	static func parse(file: String) -> EnvFile? {
 		enum State {
 			case key, value
+			case beforeValue, afterValue
+			case quotedValue(Character)
 		}
 
 		var output: [String: String] = [:]
@@ -31,10 +33,24 @@ public struct DotEnvLoader {
 			switch state {
 			case .key:
 				if token == "=" {
-					state = .value
+					state = .beforeValue
 				} else {
 					currentKey.append(token)
 				}
+			case .afterValue:
+				continue
+			case .beforeValue:
+				switch token {
+				case "'", "`", "\"":
+					state = .quotedValue(token)
+				default:
+					currentValue.append(token)
+				}
+			case let .quotedValue(quotation):
+				guard token == quotation
+				else { fallthrough }
+
+				state = .afterValue
 			case .value:
 				currentValue.append(token)
 			}
