@@ -27,4 +27,21 @@ final class DotEnvLoaderTests: XCTestCase {
 			"baz": "789",
 		])
 	}
+
+	func test__parseFile__multiLine__parsesCorrectly() async throws {
+		let file = DotEnvLoader.parse(file: """
+		foo="1
+		2"
+		bar='1
+		2'
+		baz=`1
+		2`
+		""")
+
+		XCTAssertEqual(file, [
+			"foo": "1\n2",
+			"bar": "1\n2",
+			"baz": "1\n2",
+		])
+	}
 }

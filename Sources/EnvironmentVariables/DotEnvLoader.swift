@@ -25,9 +25,14 @@ public struct DotEnvLoader {
 
 		for token in file {
 			if token == "\n" {
-				state = .key
-				finishValue()
-				continue
+				switch state {
+				case .quotedValue(_):
+					break
+				default:
+					state = .key
+					finishValue()
+					continue
+				}
 			}
 
 			switch state {
