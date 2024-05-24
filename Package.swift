@@ -20,6 +20,7 @@ let package = Package(
 			dependencies: ["EnvironmentVariables"],
 			resources: [
 				.copy("sample-env"),
+				.copy("sample-env-multiline"),
 			]
 		),
 	]
