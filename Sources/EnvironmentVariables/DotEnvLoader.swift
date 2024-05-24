@@ -4,7 +4,7 @@ public struct DotEnvLoader {
 	static func parse(file: String) -> EnvFile? {
 		enum State {
 			case key, value, comment
-			case beforeValue, afterValue
+			case beforeValue, afterQuote(Character)
 			case quotedValue(Character)
 		}
 
@@ -16,8 +16,16 @@ public struct DotEnvLoader {
 		var currentValue: [Character] = []
 
 		func finishValue() {
-			if !currentKey.isEmpty && !currentValue.isEmpty {
-				output[String(currentKey).trimmingCharacters(in: .whitespaces)] = String(currentValue).trimmingCharacters(in: .whitespaces)
+			if !currentKey.isEmpty {
+				var value = String(currentValue)
+				if case let .afterQuote(quotation) = state {
+					if quotation == "\"" {
+						value = value.replacingOccurrences(of: "\\n", with: "\n")
+					}
+				} else {
+					value = value.trimmingCharacters(in: .whitespaces)
+				}
+				output[String(currentKey).trimmingCharacters(in: .whitespaces)] = value
 				currentKey = []
 				currentValue = []
 			}
@@ -36,7 +44,7 @@ public struct DotEnvLoader {
 			}
 			if token == "#" {
 				switch state {
-				case .quotedValue(_):
+				case .quotedValue(_), .afterQuote:
 					break
 				default:
 					state = .comment
@@ -53,10 +61,13 @@ public struct DotEnvLoader {
 				} else {
 					currentKey.append(token)
 				}
-			case .afterValue:
+			case .afterQuote:
 				continue
 			case .beforeValue:
 				switch token {
+				case "{":
+					state = .quotedValue("}")
+					currentValue.append("{")
 				case "'", "`", "\"":
 					state = .quotedValue(token)
 				default:
@@ -66,7 +77,11 @@ public struct DotEnvLoader {
 				guard token == quotation
 				else { fallthrough }
 
-				state = .afterValue
+				if token == "}" {
+					currentValue.append("}")
+				}
+
+				state = .afterQuote(quotation)
 			case .value:
 				currentValue.append(token)
 			}

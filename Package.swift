@@ -17,7 +17,10 @@ let package = Package(
 		),
 		.testTarget(
 			name: "EnvironmentVariablesTests",
-			dependencies: ["EnvironmentVariables"]
+			dependencies: ["EnvironmentVariables"],
+			resources: [
+				.copy("sample-env"),
+			]
 		),
 	]
 )
