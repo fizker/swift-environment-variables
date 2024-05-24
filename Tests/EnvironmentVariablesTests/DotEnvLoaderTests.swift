@@ -190,4 +190,21 @@ final class DotEnvLoaderTests: XCTestCase {
 				""",
 		])
 	}
+
+	func test__parseFile__differentLineEndings__parsesCorrectly() async throws {
+		XCTAssertEqual(DotEnvLoader.parse(file: "foo='1\n2'\nbar='1\n2'"), [
+			"foo": "1\n2",
+			"bar": "1\n2",
+		])
+
+		XCTAssertEqual(DotEnvLoader.parse(file: "foo='1\r2'\rbar='1\r2'"), [
+			"foo": "1\r2",
+			"bar": "1\r2",
+		])
+
+		XCTAssertEqual(DotEnvLoader.parse(file: "foo='1\r\n2'\nbar='1\r\n2'"), [
+			"foo": "1\r\n2",
+			"bar": "1\r\n2",
+		])
+	}
 }

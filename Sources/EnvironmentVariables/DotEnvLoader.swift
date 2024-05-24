@@ -32,7 +32,7 @@ public struct DotEnvLoader {
 		}
 
 		for token in file {
-			if token == "\n" {
+			if token.isNewline {
 				switch state {
 				case .quotedValue(_):
 					break
