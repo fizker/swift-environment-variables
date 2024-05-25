@@ -1,6 +1,20 @@
 import XCTest
 @testable import EnvironmentVariables
 
+/// The contents of the `data/.env` file.
+private let rootEnv = [
+	"foo": "bar",
+	"BASIC": "root env",
+	"root": "123",
+]
+
+/// The contents of the `data/nested/.env` file.
+private let nestedEnv = [
+	"foo": "bar",
+	"BASIC": "nested env",
+	"nested": "123",
+]
+
 final class DotEnvLoaderTests: XCTestCase {
 	func test__parseFile__simpleFile__parsesCorrectly() async throws {
 		let file = DotEnvLoader.parse(file: """
@@ -209,11 +223,7 @@ final class DotEnvLoaderTests: XCTestCase {
 	}
 
 	func test__initWithLocations__specificFile__initiatesCorrectly() async throws {
-		let fm = FileManager.default
-
-		guard
-			let path = Bundle.module.path(forResource: "sample-env", ofType: nil),
-			let data = fm.contents(atPath: path)
+		guard let path = Bundle.module.path(forResource: "sample-env", ofType: nil)
 		else {
 			XCTFail("Failed to load file")
 			return
@@ -262,5 +272,48 @@ final class DotEnvLoaderTests: XCTestCase {
 		for (key, value) in expected {
 			XCTAssertEqual(subject.get(key), value)
 		}
+	}
+
+	func test__initWithLocations__cwdAndExecutableContainsDotEnv__filesAreReadCorrectly() async throws {
+		guard
+			let dataEnv = Bundle.module.path(forResource: "", ofType: "env", inDirectory: "data"),
+			let nestedEnv = Bundle.module.path(forResource: "", ofType: "env", inDirectory: "data/nested")
+		else {
+			XCTFail("Failed to load file")
+			return
+		}
+
+		let dataPath = folder(forFile: dataEnv)
+		let nestedPath = folder(forFile: nestedEnv)
+
+		let fm = FileManager.default
+		let originalCWD = fm.currentDirectoryPath
+		defer {
+			fm.changeCurrentDirectoryPath(originalCWD)
+		}
+		fm.changeCurrentDirectoryPath(dataPath)
+
+		let pi = TestableProcessInfo(path: nestedPath)
+
+		let subject = DotEnvLoader(locations: [.currentWorkingDir, .executableDir], fileManager: fm, processInfo: pi)
+
+		XCTAssertEqual(subject.get("root"), "123")
+		XCTAssertEqual(subject.get("nested"), "123")
+	}
+}
+
+private func folder(forFile path: String) -> String {
+	URL(filePath: path).deletingLastPathComponent().path()
+}
+
+private class TestableProcessInfo: ProcessInfo {
+	let path: String
+
+	init(path: String) {
+		self.path = path
+	}
+
+	override var arguments: [String] {
+		["\(path)/foo"]
 	}
 }
