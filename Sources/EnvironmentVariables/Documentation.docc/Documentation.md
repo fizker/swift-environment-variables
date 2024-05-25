@@ -4,17 +4,24 @@ Safely extract environment values.
 
 ## Overview
 
-First, create a enum for the keys. It must be `: String, CaseIterable` to be usable.
+First, create a enum for the keys. It must have `String` as the raw value and conform
+to `CaseIterable` to be usable. The raw value will be used as the key to look up.
 
 ```swift
 enum EnvKey: String, CaseIterable {
-	case foo = "my-env-var", bar
+	/// The key is `foo`.
+	case foo
+	/// The key is `my-env-var`.
+	case bar = "my-env-var"
 }
 ```
 
 Then create an instance of ``EnvironmentVariables/EnvironmentVariables`` that use that enum.
 
-The default init pulls the values from `ProcessInfo.processInfo`, but a function can be passed in if a different source is wanted.
+The default init pulls the values from `ProcessInfo.processInfo` first, and then looks for `.env`
+files in the current working directory and in the folder containing the executable, in that priority order.
+
+See ``EnvironmentVariables/EnvironmentVariables/init(dictionary:)``, ``MultiLoader`` and ``DotEnvLoader``, if other sources are needed.
 
 ```swift
 let env = EnvironmentVariables<EnvKey>()
@@ -72,4 +79,15 @@ extension EnvironmentVariables where Key == EnvKey {
 
 ## Topics
 
-### Group 1
+### Defining environment variables
+
+- ``EnvironmentVariables/EnvironmentVariables``
+- ``EnvironmentVariablesError``
+- ``MissingEnvironmentVariables``
+
+
+### Value Loaders
+
+- ``Loader``
+- ``DotEnvLoader``
+- ``MultiLoader``
