@@ -222,14 +222,14 @@ final class DotEnvLoaderTests: XCTestCase {
 		])
 	}
 
-	func test__initWithLocations__specificFile__initiatesCorrectly() async throws {
+	func test__initWithLocation__specificFile__initiatesCorrectly() async throws {
 		guard let path = Bundle.module.path(forResource: "sample-env", ofType: nil)
 		else {
 			XCTFail("Failed to load file")
 			return
 		}
 
-		let subject = DotEnvLoader(locations: [.path(path)])
+		let subject = DotEnvLoader(location: .path(path))
 
 		let expected = [
 			"BASIC": "basic",
@@ -274,17 +274,14 @@ final class DotEnvLoaderTests: XCTestCase {
 		}
 	}
 
-	func test__initWithLocations__cwdAndExecutableContainsDotEnv__filesAreReadCorrectly() async throws {
-		guard
-			let dataEnv = Bundle.module.path(forResource: "", ofType: "env", inDirectory: "data"),
-			let nestedEnv = Bundle.module.path(forResource: "", ofType: "env", inDirectory: "data/nested")
+	func test__initWithLocation__cwdContainsDotEnv__filesAreReadCorrectly() async throws {
+		guard let dataEnv = Bundle.module.path(forResource: "", ofType: "env", inDirectory: "data")
 		else {
 			XCTFail("Failed to load file")
 			return
 		}
 
 		let dataPath = folder(forFile: dataEnv)
-		let nestedPath = folder(forFile: nestedEnv)
 
 		let fm = FileManager.default
 		let originalCWD = fm.currentDirectoryPath
@@ -293,12 +290,34 @@ final class DotEnvLoaderTests: XCTestCase {
 		}
 		fm.changeCurrentDirectoryPath(dataPath)
 
-		let pi = TestableProcessInfo(path: nestedPath)
+		let pi = TestableProcessInfo(path: dataPath)
 
-		let subject = DotEnvLoader(locations: [.currentWorkingDir, .executableDir], fileManager: fm, processInfo: pi)
+		let subject = DotEnvLoader(location: .currentWorkingDir, fileManager: fm, processInfo: pi)
 
 		XCTAssertEqual(subject.get("root"), "123")
-		XCTAssertEqual(subject.get("nested"), "123")
+	}
+
+	func test__initWithLocation__executableDirContainsDotEnv__filesAreReadCorrectly() async throws {
+		guard let dataEnv = Bundle.module.path(forResource: "", ofType: "env", inDirectory: "data")
+		else {
+			XCTFail("Failed to load file")
+			return
+		}
+
+		let dataPath = folder(forFile: dataEnv)
+
+		let fm = FileManager.default
+		let originalCWD = fm.currentDirectoryPath
+		defer {
+			fm.changeCurrentDirectoryPath(originalCWD)
+		}
+		fm.changeCurrentDirectoryPath(dataPath)
+
+		let pi = TestableProcessInfo(path: dataPath)
+
+		let subject = DotEnvLoader(location: .executableDir, fileManager: fm, processInfo: pi)
+
+		XCTAssertEqual(subject.get("root"), "123")
 	}
 }
 

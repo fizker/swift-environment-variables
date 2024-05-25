@@ -2,6 +2,7 @@ import Foundation
 
 typealias EnvFile = [String: String]
 
+/// A loader that understands `.env` files.
 public struct DotEnvLoader {
 	/// The location that the Loader should look for `.env` files
 	public enum Location {
@@ -18,53 +19,40 @@ public struct DotEnvLoader {
 
 	private let fm: FileManager
 	private let pi: ProcessInfo
-	private var files: [EnvFile] = []
+	private let file: EnvFile
 
-	public init(locations: [Location] = [.executableDir, .currentWorkingDir], fileManager: FileManager = .default, processInfo: ProcessInfo = .processInfo) {
+	/// Creates a new DotEnvLoader.
+	///
+	/// - parameter location: The location to search through. If the location does not contain a valid `.env` file, ``get(_:)`` will simply return `nil` for all input values.
+	/// - parameter fileManager: The FileManager instance to use for reading the files and discovering the ``Location/currentWorkingDir`` location.
+	/// - parameter processInfo: The ProcessInfo instance to use for discovering the ``Location/executableDir`` location.
+	public init(location: Location, fileManager: FileManager = .default, processInfo: ProcessInfo = .processInfo) {
 		fm = fileManager
 		pi = processInfo
 
-		var hasFoundCWD = false
-		var hasFoundExecutableDir = false
-
-		for location in locations {
-			let path: String
-			switch location {
-			case let .path(p):
-				path = p
-			case .currentWorkingDir:
-				guard !hasFoundCWD
-				else { continue }
-				hasFoundCWD = true
-				var url = URL(fileURLWithPath: fm.currentDirectoryPath)
-				url.appendPathComponent(".env")
-				path = url.path
-			case .executableDir:
-				guard !hasFoundExecutableDir
-				else { continue }
-				hasFoundExecutableDir = true
-
-				let executablePath = pi.arguments[0]
-				if #available(macOS 13.0, *) {
-					var dir = URL(filePath: executablePath)
-					dir.deleteLastPathComponent()
-					dir.append(component: ".env")
-					path = dir.path()
-				} else {
-					var dir = URL(fileURLWithPath: executablePath)
-					dir.deleteLastPathComponent()
-					dir.appendPathComponent(".env")
-					path = dir.path
-				}
-			}
-
-			if let file = handle(path: path) {
-				files.append(file)
+		let path: String
+		switch location {
+		case let .path(p):
+			path = p
+		case .currentWorkingDir:
+			path = fm.currentDirectoryPath
+		case .executableDir:
+			let executablePath = pi.arguments[0]
+			if #available(macOS 13.0, *) {
+				var dir = URL(filePath: executablePath)
+				dir.deleteLastPathComponent()
+				path = dir.path()
+			} else {
+				var dir = URL(fileURLWithPath: executablePath)
+				dir.deleteLastPathComponent()
+				path = dir.path
 			}
 		}
+
+		file = Self.handle(path: path, fm: fm) ?? [:]
 	}
 
-	func handle(path: String) -> EnvFile? {
+	static func handle(path: String, fm: FileManager) -> EnvFile? {
 		var isDir: ObjCBool = false
 		guard fm.fileExists(atPath: path, isDirectory: &isDir)
 		else { return nil }
@@ -92,14 +80,12 @@ public struct DotEnvLoader {
 		return Self.parse(file: content)
 	}
 
+	/// Returns the value for the given `key`, or `nil` if there is no match.
+	///
+	/// - parameter key: The key to look for.
+	/// - returns: The corresponding value, or `nil` if there is no match.
 	public func get(_ key: String) -> String? {
-		for file in files {
-			if let value = file[key] {
-				return value
-			}
-		}
-
-		return nil
+		file[key]
 	}
 
 	static func parse(file: String) -> EnvFile? {
