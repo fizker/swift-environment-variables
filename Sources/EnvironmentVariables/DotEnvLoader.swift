@@ -3,7 +3,7 @@ import Foundation
 typealias EnvFile = [String: String]
 
 /// A loader that understands `.env` files.
-public struct DotEnvLoader {
+public struct DotEnvLoader: Loader {
 	/// The location that the Loader should look for `.env` files
 	public enum Location {
 		/// The currently configured working directory.
