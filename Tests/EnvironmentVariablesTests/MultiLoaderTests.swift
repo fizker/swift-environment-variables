@@ -24,5 +24,6 @@ final class MultiLoaderTests: XCTestCase {
 		XCTAssertEqual(subject.get("unique1"), "123")
 		XCTAssertEqual(subject.get("unique2"), "456")
 		XCTAssertEqual(subject.get("unique3"), "789")
+		XCTAssertEqual(subject.get("unknown"), nil)
 	}
 }
