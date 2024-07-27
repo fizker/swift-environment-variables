@@ -21,11 +21,24 @@ Then create an instance of ``EnvironmentVariables/EnvironmentVariables`` that us
 The default init pulls the values from `ProcessInfo.processInfo` first, and then looks for `.env`
 files in the current working directory and in the folder containing the executable, in that priority order.
 
-See ``EnvironmentVariables/EnvironmentVariables/init(dictionary:)``, ``MultiLoader`` and ``DotEnvLoader``, if other sources are needed.
-
 ```swift
 let env = EnvironmentVariables<EnvKey>()
 ```
+
+An example for loading a dotenv file with a custom filename in addition to the default values:
+
+```swift
+let env = EnvironmentVariables<EnvKey>(loader: MultiLoader(loaders: [
+	// Values in the environment takes precedence
+	.environment,
+	// Our custom name
+	DotEnvLoader(location: "custom-dotenv-filename")),
+	// The default list. Note that this also includes .environment, but since that is a Dictionary, lookups are very cheap.
+	.default,
+]))
+```
+
+See ``EnvironmentVariables/EnvironmentVariables/init(dictionary:)``, ``MultiLoader`` and ``DotEnvLoader``, if other sources are needed.
 
 If some values are required for the app to function, this would be a good time to assert their presence, so that the app fails early.
 
