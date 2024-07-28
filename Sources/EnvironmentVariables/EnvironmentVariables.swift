@@ -11,9 +11,23 @@ public enum EnvironmentVariablesError: Error, Sendable {
 public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, Key: RawRepresentable, Key.RawValue == String {
 	/// Creates a new `EnvironmentVariables`.
 	///
+	/// - Parameter loader: A loader.
+	public init(loader: some Loader = .default) {
+		self.init(valueGetter: loader.get(_:))
+	}
+
+	/// Creates a new `EnvironmentVariables`.
+	///
+	/// - Parameter dictionary: A dictionary of values.
+	public init(dictionary: [String: String]) {
+		self.init(valueGetter: dictionary.get(_:))
+	}
+
+	/// Creates a new `EnvironmentVariables`.
+	///
 	/// - Parameter valueGetter: A function that takes a `String` key and returns the matching
 	/// value from the environment, or `nil` if there are no matches.
-	public init(valueGetter: (String) -> String? = { ProcessInfo.processInfo.environment[$0] }) {
+	public init(valueGetter: (String) -> String?) {
 		missingKeys.keys = []
 
 		for key in Key.allCases {
