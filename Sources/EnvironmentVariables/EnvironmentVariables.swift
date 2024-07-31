@@ -28,16 +28,18 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 	/// - Parameter valueGetter: A function that takes a `String` key and returns the matching
 	/// value from the environment, or `nil` if there are no matches.
 	public init(valueGetter: (String) -> String?) {
-		missingKeys.keys = []
+		var missingKeys: [String] = []
 
 		for key in Key.allCases {
 			if let value = valueGetter(key.rawValue) {
 				values[key] = value
 			} else {
 				values[key] = nil
-				missingKeys.keys.append(key.rawValue)
+				missingKeys.append(key.rawValue)
 			}
 		}
+
+		self.missingKeys = .init(keys: missingKeys)
 	}
 
 	/// Creates a new `EnvironmentVariables`.
@@ -46,16 +48,18 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 	/// value from the environment, or `nil` if there are no matches.
 	@available(macOS 10.15.0, *)
 	public init(valueGetter: (String) async -> String?) async {
-		missingKeys.keys = []
+		var missingKeys: [String] = []
 
 		for key in Key.allCases {
 			if let value = await valueGetter(key.rawValue) {
 				values[key] = value
 			} else {
 				values[key] = nil
-				missingKeys.keys.append(key.rawValue)
+				missingKeys.append(key.rawValue)
 			}
 		}
+
+		self.missingKeys = .init(keys: missingKeys)
 	}
 
 	/// Asserts if any keys are missing, and throws if there are.
@@ -172,7 +176,7 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 	}
 
 	private var values: [Key: String] = [:]
-	private var missingKeys: MissingEnvironmentVariables = .init()
+	private let missingKeys: MissingEnvironmentVariables
 }
 
 extension EnvironmentVariables: Sendable where Key: Sendable {
