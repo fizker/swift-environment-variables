@@ -111,6 +111,7 @@ final class DotEnvLoaderTests: XCTestCase {
 			"EMPTY_SINGLE_QUOTES": "",
 			"EMPTY_DOUBLE_QUOTES": "",
 			"EMPTY_BACKTICKS": "",
+			"EXTENDED_CHAR": "æøå",
 			"SINGLE_QUOTES": "single_quotes",
 			"SINGLE_QUOTES_SPACED": "    single quotes    ",
 			"DOUBLE_QUOTES": "double_quotes",
@@ -234,6 +235,18 @@ final class DotEnvLoaderTests: XCTestCase {
 		XCTAssertEqual(subject.file, [:])
 	}
 
+	func test__initWithLocation__specificFile_fileIsNotUTF8__initiatesAsEmpty() async throws {
+		guard let path = Bundle.module.path(forResource: "sample-env-non-utf8", ofType: nil)
+		else {
+			XCTFail("Failed to load file")
+			return
+		}
+
+		let subject = DotEnvLoader(location: .path(path))
+
+		XCTAssertEqual(subject.file, [:])
+	}
+
 	func test__initWithLocation__specificFile__initiatesCorrectly() async throws {
 		guard let path = Bundle.module.path(forResource: "sample-env", ofType: nil)
 		else {
@@ -246,6 +259,7 @@ final class DotEnvLoaderTests: XCTestCase {
 		let expected = [
 			"BASIC": "basic",
 			"AFTER_LINE": "after_line",
+			"EXTENDED_CHAR": "æøå",
 			"EMPTY": "",
 			"EMPTY_SINGLE_QUOTES": "",
 			"EMPTY_DOUBLE_QUOTES": "",
@@ -281,9 +295,7 @@ final class DotEnvLoaderTests: XCTestCase {
 			"SPACED_KEY": "parsed",
 		]
 
-		for (key, value) in expected {
-			XCTAssertEqual(subject.get(key), value)
-		}
+		XCTAssertEqual(subject.file, expected)
 	}
 
 	func test__initWithLocation__cwdContainsDotEnv__filesAreReadCorrectly() async throws {

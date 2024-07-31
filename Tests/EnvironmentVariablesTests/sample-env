@@ -2,6 +2,8 @@
 
 BASIC=basic
 
+EXTENDED_CHAR=æøå
+
 # previous line intentionally left blank
 AFTER_LINE=after_line
 EMPTY=

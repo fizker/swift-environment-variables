@@ -21,6 +21,7 @@ let package = Package(
 			resources: [
 				.copy("sample-env"),
 				.copy("sample-env-multiline"),
+				.copy("sample-env-non-utf8"),
 				.copy("data"),
 			]
 		),
