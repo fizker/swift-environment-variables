@@ -38,15 +38,7 @@ public struct DotEnvLoader: Loader {
 			path = fm.currentDirectoryPath
 		case .executableDir:
 			let executablePath = pi.arguments[0]
-			if #available(macOS 13.0, *) {
-				var dir = URL(filePath: executablePath)
-				dir.deleteLastPathComponent()
-				path = dir.path()
-			} else {
-				var dir = URL(fileURLWithPath: executablePath)
-				dir.deleteLastPathComponent()
-				path = dir.path
-			}
+			path = executablePath.deleteLastPathComponent()
 		}
 
 		file = Self.handle(path: path, fm: fm) ?? [:]
@@ -57,20 +49,11 @@ public struct DotEnvLoader: Loader {
 		guard fm.fileExists(atPath: path, isDirectory: &isDir)
 		else { return nil }
 
-		let data: Data?
-		if #available(macOS 13.0, *) {
-			var url = URL(filePath: path)
-			if isDir.boolValue {
-				url.append(component: ".env")
-			}
-			data = fm.contents(atPath: url.path())
-		} else {
-			var url = URL(fileURLWithPath: path)
-			if isDir.boolValue {
-				url.appendPathComponent(".env")
-			}
-			data = fm.contents(atPath: url.path)
+		var path = path
+		if isDir.boolValue {
+			path = path.appending(pathComponent: ".env")
 		}
+		let data = fm.contents(atPath: path)
 
 		guard
 			let data,
@@ -177,5 +160,17 @@ public struct DotEnvLoader: Loader {
 		finishValue()
 
 		return output
+	}
+}
+
+private extension String {
+	func appending(pathComponent: String) -> String {
+		let str = NSString(string: self)
+		return str.appendingPathComponent(pathComponent)
+	}
+
+	func deleteLastPathComponent() -> String {
+		let str = NSString(string: self)
+		return str.deletingLastPathComponent
 	}
 }
