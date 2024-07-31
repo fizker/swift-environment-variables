@@ -19,7 +19,8 @@ public struct DotEnvLoader: Loader {
 
 	private let fm: FileManager
 	private let pi: ProcessInfo
-	private let file: EnvFile
+	// This is internal to allow tests access
+	let file: EnvFile
 
 	/// Creates a new DotEnvLoader.
 	///

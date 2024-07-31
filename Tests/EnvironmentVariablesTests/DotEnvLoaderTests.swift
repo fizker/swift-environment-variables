@@ -222,6 +222,18 @@ final class DotEnvLoaderTests: XCTestCase {
 		])
 	}
 
+	func test__initWithLocation__specificFile_fileDoesNotExist__initiatesAsEmpty() async throws {
+		guard let path = Bundle.module.path(forResource: "sample-env", ofType: nil)
+		else {
+			XCTFail("Failed to load file")
+			return
+		}
+
+		let subject = DotEnvLoader(location: .path(path + "-non-existing"))
+
+		XCTAssertEqual(subject.file, [:])
+	}
+
 	func test__initWithLocation__specificFile__initiatesCorrectly() async throws {
 		guard let path = Bundle.module.path(forResource: "sample-env", ofType: nil)
 		else {
