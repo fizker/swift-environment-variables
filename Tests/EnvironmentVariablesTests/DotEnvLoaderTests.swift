@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 @testable import EnvironmentVariables
 
 /// The contents of the `data/.env` file.
@@ -15,34 +16,37 @@ private let nestedEnv = [
 	"nested": "123",
 ]
 
-final class DotEnvLoaderTests: XCTestCase {
-	func test__parseFile__simpleFile__parsesCorrectly() async throws {
+struct DotEnvLoaderTests {
+	@Test
+	func parseFile__simpleFile__parsesCorrectly() async throws {
 		let file = DotEnvLoader.parse(file: """
 		foo=123
 		bar=somevalue
 		""")
 
-		XCTAssertEqual(file, [
+		#expect(file == [
 			"foo": "123",
 			"bar": "somevalue",
 		])
 	}
 
-	func test__parseFile__quotes__parsesCorrectly() async throws {
+	@Test
+	func parseFile__quotes__parsesCorrectly() async throws {
 		let file = DotEnvLoader.parse(file: """
 		foo="123"
 		bar='456'
 		baz=`789`
 		""")
 
-		XCTAssertEqual(file, [
+		#expect(file == [
 			"foo": "123",
 			"bar": "456",
 			"baz": "789",
 		])
 	}
 
-	func test__parseFile__multiLine__parsesCorrectly() async throws {
+	@Test
+	func parseFile__multiLine__parsesCorrectly() async throws {
 		let file = DotEnvLoader.parse(file: """
 		foo="1
 		2"
@@ -52,14 +56,15 @@ final class DotEnvLoaderTests: XCTestCase {
 		2`
 		""")
 
-		XCTAssertEqual(file, [
+		#expect(file == [
 			"foo": "1\n2",
 			"bar": "1\n2",
 			"baz": "1\n2",
 		])
 	}
 
-	func test__parseFile__emptyLines_quotes__parsesCorrectly() async throws {
+	@Test
+	func parseFile__emptyLines_quotes__parsesCorrectly() async throws {
 		let file = DotEnvLoader.parse(file: """
 
 		foo=1
@@ -69,14 +74,15 @@ final class DotEnvLoaderTests: XCTestCase {
 		baz=3 # comment
 		""")
 
-		XCTAssertEqual(file, [
+		#expect(file == [
 		"foo": "1",
 		"bar": "2",
 		"baz": "3",
 		])
 	}
 
-	func test__parseFile__emptyValues__parsesCorrectly() async throws {
+	@Test
+	func parseFile__emptyValues__parsesCorrectly() async throws {
 		let file = DotEnvLoader.parse(file: """
 		foo=
 		bar=""
@@ -84,7 +90,7 @@ final class DotEnvLoaderTests: XCTestCase {
 		foobar=''
 		""")
 
-		XCTAssertEqual(file, [
+		#expect(file == [
 		"foo": "",
 		"bar": "",
 		"baz": "",
@@ -92,19 +98,15 @@ final class DotEnvLoaderTests: XCTestCase {
 		])
 	}
 
-	func test__parseFile__singleLineSampleFile__parsesCorrectly() async throws {
-		guard
-			let path = Bundle.module.path(forResource: "sample-env", ofType: nil),
-			let data = FileManager.default.contents(atPath: path),
-			let content = String(data: data, encoding: .utf8)
-		else {
-			XCTFail("Failed to load file")
-			return
-		}
+	@Test
+	func parseFile__singleLineSampleFile__parsesCorrectly() async throws {
+		let path = try #require(Bundle.module.path(forResource: "sample-env", ofType: nil))
+		let data = try #require(FileManager.default.contents(atPath: path))
+		let content = try #require(String(data: data, encoding: .utf8))
 
 		let file = DotEnvLoader.parse(file: content)
 
-		XCTAssertEqual(file, [
+		#expect(file == [
 			"BASIC": "basic",
 			"AFTER_LINE": "after_line",
 			"EMPTY": "",
@@ -144,19 +146,15 @@ final class DotEnvLoaderTests: XCTestCase {
 		])
 	}
 
-	func test__parseFile__multiLineSampleFile__parsesCorrectly() async throws {
-		guard
-			let path = Bundle.module.path(forResource: "sample-env-multiline", ofType: nil),
-			let data = FileManager.default.contents(atPath: path),
-			let content = String(data: data, encoding: .utf8)
-		else {
-			XCTFail("Failed to load file")
-			return
-		}
+	@Test
+	func parseFile__multiLineSampleFile__parsesCorrectly() async throws {
+		let path = try #require(Bundle.module.path(forResource: "sample-env-multiline", ofType: nil))
+		let data = try #require(FileManager.default.contents(atPath: path))
+		let content = try #require(String(data: data, encoding: .utf8))
 
 		let file = DotEnvLoader.parse(file: content)
 
-		XCTAssertEqual(file, [
+		#expect(file == [
 			"BASIC": "basic",
 			"AFTER_LINE": "after_line",
 			"EMPTY": "",
@@ -206,53 +204,45 @@ final class DotEnvLoaderTests: XCTestCase {
 		])
 	}
 
-	func test__parseFile__differentLineEndings__parsesCorrectly() async throws {
-		XCTAssertEqual(DotEnvLoader.parse(file: "foo='1\n2'\nbar='1\n2'"), [
+	@Test
+	func parseFile__differentLineEndings__parsesCorrectly() async throws {
+		#expect(DotEnvLoader.parse(file: "foo='1\n2'\nbar='1\n2'") == [
 			"foo": "1\n2",
 			"bar": "1\n2",
 		])
 
-		XCTAssertEqual(DotEnvLoader.parse(file: "foo='1\r2'\rbar='1\r2'"), [
+		#expect(DotEnvLoader.parse(file: "foo='1\r2'\rbar='1\r2'") == [
 			"foo": "1\r2",
 			"bar": "1\r2",
 		])
 
-		XCTAssertEqual(DotEnvLoader.parse(file: "foo='1\r\n2'\nbar='1\r\n2'"), [
+		#expect(DotEnvLoader.parse(file: "foo='1\r\n2'\nbar='1\r\n2'") == [
 			"foo": "1\r\n2",
 			"bar": "1\r\n2",
 		])
 	}
 
-	func test__initWithLocation__specificFile_fileDoesNotExist__initiatesAsEmpty() async throws {
-		guard let path = Bundle.module.path(forResource: "sample-env", ofType: nil)
-		else {
-			XCTFail("Failed to load file")
-			return
-		}
+	@Test
+	func initWithLocation__specificFile_fileDoesNotExist__initiatesAsEmpty() async throws {
+		let path = try #require(Bundle.module.path(forResource: "sample-env", ofType: nil))
 
 		let subject = DotEnvLoader(location: .path(path + "-non-existing"))
 
-		XCTAssertEqual(subject.file, [:])
+		#expect(subject.file == [:])
 	}
 
-	func test__initWithLocation__specificFile_fileIsNotUTF8__initiatesAsEmpty() async throws {
-		guard let path = Bundle.module.path(forResource: "sample-env-non-utf8", ofType: nil)
-		else {
-			XCTFail("Failed to load file")
-			return
-		}
+	@Test
+	func initWithLocation__specificFile_fileIsNotUTF8__initiatesAsEmpty() async throws {
+		let path = try #require(Bundle.module.path(forResource: "sample-env-non-utf8", ofType: nil))
 
 		let subject = DotEnvLoader(location: .path(path))
 
-		XCTAssertEqual(subject.file, [:])
+		#expect(subject.file == [:])
 	}
 
-	func test__initWithLocation__specificFile__initiatesCorrectly() async throws {
-		guard let path = Bundle.module.path(forResource: "sample-env", ofType: nil)
-		else {
-			XCTFail("Failed to load file")
-			return
-		}
+	@Test
+	func initWithLocation__specificFile__initiatesCorrectly() async throws {
+		let path = try #require(Bundle.module.path(forResource: "sample-env", ofType: nil))
 
 		let subject = DotEnvLoader(location: .path(path))
 
@@ -295,15 +285,12 @@ final class DotEnvLoaderTests: XCTestCase {
 			"SPACED_KEY": "parsed",
 		]
 
-		XCTAssertEqual(subject.file, expected)
+		#expect(subject.file == expected)
 	}
 
-	func test__initWithLocation__cwdContainsDotEnv__filesAreReadCorrectly() async throws {
-		guard let dataEnv = Bundle.module.path(forResource: "", ofType: "env", inDirectory: "data")
-		else {
-			XCTFail("Failed to load file")
-			return
-		}
+	@Test
+	func initWithLocation__cwdContainsDotEnv__filesAreReadCorrectly() async throws {
+		let dataEnv = try #require(Bundle.module.path(forResource: "", ofType: "env", inDirectory: "data"))
 
 		let dataPath = folder(forFile: dataEnv)
 
@@ -318,15 +305,12 @@ final class DotEnvLoaderTests: XCTestCase {
 
 		let subject = DotEnvLoader(location: .currentWorkingDir, fileManager: fm, processInfo: pi)
 
-		XCTAssertEqual(subject.get("root"), "123")
+		#expect(subject.get("root") == "123")
 	}
 
-	func test__initWithLocation__executableDirContainsDotEnv__filesAreReadCorrectly() async throws {
-		guard let dataEnv = Bundle.module.path(forResource: "", ofType: "env", inDirectory: "data")
-		else {
-			XCTFail("Failed to load file")
-			return
-		}
+	@Test
+	func initWithLocation__executableDirContainsDotEnv__filesAreReadCorrectly() async throws {
+		let dataEnv = try #require(Bundle.module.path(forResource: "", ofType: "env", inDirectory: "data"))
 
 		let dataPath = folder(forFile: dataEnv)
 
@@ -341,7 +325,7 @@ final class DotEnvLoaderTests: XCTestCase {
 
 		let subject = DotEnvLoader(location: .executableDir, fileManager: fm, processInfo: pi)
 
-		XCTAssertEqual(subject.get("root"), "123")
+		#expect(subject.get("root") == "123")
 	}
 }
 
@@ -349,7 +333,7 @@ private func folder(forFile path: String) -> String {
 	URL(filePath: path).deletingLastPathComponent().path()
 }
 
-private class TestableProcessInfo: ProcessInfo {
+private class TestableProcessInfo: ProcessInfo, @unchecked Sendable {
 	let path: String
 
 	init(path: String) {
