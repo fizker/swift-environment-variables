@@ -1,7 +1,7 @@
 import Testing
 @testable import EnvironmentVariables
 
-final class MissingEnvironmentVariablesTests {
+struct MissingEnvironmentVariablesTests {
 	@Test
 	func description__singleErrorProvided__returnsCorrectDescription() async throws {
 		let subject = MissingEnvironmentVariables(keys: ["b"])
