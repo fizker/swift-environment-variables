@@ -333,7 +333,7 @@ private func folder(forFile path: String) -> String {
 	URL(filePath: path).deletingLastPathComponent().path()
 }
 
-private class TestableProcessInfo: ProcessInfo {
+private class TestableProcessInfo: ProcessInfo, @unchecked Sendable {
 	let path: String
 
 	init(path: String) {
