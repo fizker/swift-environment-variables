@@ -7,6 +7,48 @@ enum Keys: String, CaseIterable {
 
 struct EnvironmentVariablesTests {
 	@Test
+	func initWithKeyDictionary__allKeysArePresent__initialisesCorrectly_asksForAllValues() throws {
+		let input = [
+			Keys.foo: "FOO",
+			Keys.bar: "BAR",
+			Keys.baz: "BAZ",
+		]
+
+		let envVars = EnvironmentVariables<Keys>(input)
+
+		// This should not throw, since these keys are present
+		try envVars.assertKeys([ .bar, .baz ])
+
+		// This should not throw, since all keys are present
+		try envVars.assertKeys()
+
+		for key in Keys.allCases {
+			let expected = key.rawValue.uppercased()
+			let actual = try envVars.get(key)
+			#expect(expected == actual)
+		}
+	}
+
+	@Test
+	func initWithKeyDictionary__someKeysAreMissing__initialisesCorrectly_asksForAllValues() throws {
+		let input = [
+			Keys.bar: "BAR",
+			Keys.baz: "BAZ",
+		]
+
+		let envVars = EnvironmentVariables<Keys>(input)
+
+		// This should not throw, since these keys are present
+		try envVars.assertKeys([ .bar, .baz ])
+
+		for key in Keys.allCases {
+			let expected = key == .foo ? nil : key.rawValue.uppercased()
+			let actual = try? envVars.get(key)
+			#expect(expected == actual)
+		}
+	}
+
+	@Test
 	func initWithDictionary__allKeysArePresent__initialisesCorrectly_asksForAllValues() throws {
 		let input = [
 			Keys.foo.rawValue: "FOO",
@@ -30,7 +72,7 @@ struct EnvironmentVariablesTests {
 	}
 
 	@Test
-	func initWithinitWithDictionary__someKeysAreMissing__initialisesCorrectly_asksForAllValues() throws {
+	func initWithDictionary__someKeysAreMissing__initialisesCorrectly_asksForAllValues() throws {
 		let input = [
 			Keys.bar.rawValue: "BAR",
 			Keys.baz.rawValue: "BAZ",

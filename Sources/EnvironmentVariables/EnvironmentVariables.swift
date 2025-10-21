@@ -19,6 +19,16 @@ public struct EnvironmentVariables<Key> where Key: Hashable, Key: CaseIterable, 
 	/// Creates a new `EnvironmentVariables`.
 	///
 	/// - Parameter dictionary: A dictionary of values.
+	public init(_ dictionary: [Key: String]) {
+		let dict = Dictionary(uniqueKeysWithValues: dictionary.map {
+			($0.key.rawValue, $0.value)
+		})
+		self.init(valueGetter: dict.get(_:))
+	}
+
+	/// Creates a new `EnvironmentVariables`.
+	///
+	/// - Parameter dictionary: A dictionary of values.
 	public init(dictionary: [String: String]) {
 		self.init(valueGetter: dictionary.get(_:))
 	}
